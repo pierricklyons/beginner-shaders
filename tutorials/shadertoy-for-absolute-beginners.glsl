@@ -34,9 +34,18 @@ float Rectangle(vec2 uv, float left, float right, float top, float bottom, float
     return band1 * band2;
 }
 
+float remap01(float a, float b, float t) {
+    return (t - a) / (b - a);
+}
+
+float remap(float a, float b, float c, float d, float t) {
+     return remap01(a, b, t) * (d - c) + c;
+}
+
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord.xy / iResolution.xy; //Normalize vector  0 <> 1
+    float time = iTime;
     
     uv -= 0.5;
     uv.x *= iResolution.x/iResolution.y;
@@ -45,7 +54,14 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     
     // float mask = Smiley(uv, vec2(0.0, 0.0), 2.0);
     
-    float mask = Rectangle(uv, -0.2, 0.2, -0.3, 0.3, 0.01);
+    float x = uv.x;
+    
+    float m = sin(time + x * 8.0) * 0.1;
+    float y = uv.y - m;
+    
+    float blur = remap(-0.5, 0.5, 0.01, 0.25, x);
+    blur = pow(blur * 4.0, 3.0);
+    float mask = Rectangle(vec2(x, y), -0.5, 0.5, -0.1, 0.1, blur);
     
     color = vec3(1.0, 1.0, 1.0) * mask;
     //color = vec3(mouth);
